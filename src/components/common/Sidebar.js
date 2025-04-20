@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Button from './Button';
 
@@ -97,9 +97,13 @@ const SectionTitle = styled.h3`
   display: ${props => props.collapsed ? 'none' : 'block'};
 `;
 
-const Sidebar = ({ onNavigate = () => {} }) => {
+const Sidebar = ({ onNavigate = () => {}, currentPage = 'dashboard' }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const [activePage, setActivePage] = useState('dashboard');
+  const [activePage, setActivePage] = useState(currentPage);
+  
+  useEffect(() => {
+    setActivePage(currentPage);
+  }, [currentPage]);
   
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -108,19 +112,21 @@ const Sidebar = ({ onNavigate = () => {} }) => {
   // Define navigation items
   const mainNavItems = [
     { id: 'dashboard', icon: '📊', label: 'Dashboard', link: '#' },
-    { id: 'tasks', icon: '✓', label: 'Tasks', link: '#' },
-    { id: 'calendar', icon: '📅', label: 'Calendar', link: '#' },
-    { id: 'projects', icon: '🎯', label: 'Projects', link: '#' },
-    { id: 'timer', icon: '⏱️', label: 'Focus Timer', link: '#' }
+    { id: 'tasks', icon: '✓', label: 'Tugas', link: '#' },
+    { id: 'calendar', icon: '📅', label: 'Kalender', link: '#', disabled: true },
+    { id: 'projects', icon: '🎯', label: 'Proyek', link: '#', disabled: true },
+    { id: 'timer', icon: '⏱️', label: 'Timer Fokus', link: '#' }
   ];
   
   const toolsNavItems = [
-    { id: 'notes', icon: '📝', label: 'Notes', link: '#' },
-    { id: 'reports', icon: '📊', label: 'Reports', link: '#' },
-    { id: 'settings', icon: '⚙️', label: 'Settings', link: '#' }
+    { id: 'notes', icon: '📝', label: 'Catatan', link: '#', disabled: true },
+    { id: 'reports', icon: '📈', label: 'Laporan', link: '#', disabled: true },
+    { id: 'settings', icon: '⚙️', label: 'Pengaturan', link: '#' }
   ];
   
-  const handleNavItemClick = (pageId) => {
+  const handleNavItemClick = (pageId, disabled) => {
+    if (disabled) return;
+    
     setActivePage(pageId);
     onNavigate(pageId);
   };
@@ -131,13 +137,17 @@ const Sidebar = ({ onNavigate = () => {} }) => {
         href="#" 
         onClick={(e) => {
           e.preventDefault();
-          handleNavItemClick(item.id);
+          handleNavItemClick(item.id, item.disabled);
         }}
         collapsed={collapsed} 
         className={activePage === item.id ? 'active' : ''}
+        style={{ opacity: item.disabled ? 0.5 : 1, cursor: item.disabled ? 'not-allowed' : 'pointer' }}
       >
         <IconWrapper>{item.icon}</IconWrapper>
-        <LabelWrapper collapsed={collapsed}>{item.label}</LabelWrapper>
+        <LabelWrapper collapsed={collapsed}>
+          {item.label}
+          {item.disabled && !collapsed && <small style={{ marginLeft: '5px', fontSize: '0.7rem' }}>(Segera)</small>}
+        </LabelWrapper>
       </NavLink>
     </NavItem>
   );
@@ -145,11 +155,11 @@ const Sidebar = ({ onNavigate = () => {} }) => {
   return (
     <SidebarContainer collapsed={collapsed}>
       <SidebarHeader collapsed={collapsed}>
-        <SidebarTitle collapsed={collapsed}>Navigation</SidebarTitle>
+        <SidebarTitle collapsed={collapsed}>Navigasi</SidebarTitle>
         <Button 
           type="icon" 
           onClick={toggleCollapse} 
-          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          title={collapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
         >
           {collapsed ? '→' : '←'}
         </Button>
@@ -160,7 +170,7 @@ const Sidebar = ({ onNavigate = () => {} }) => {
       </NavList>
       
       <SidebarSection>
-        <SectionTitle collapsed={collapsed}>Tools</SectionTitle>
+        <SectionTitle collapsed={collapsed}>Alat</SectionTitle>
         <NavList>
           {toolsNavItems.map(renderNavItem)}
         </NavList>
@@ -170,7 +180,7 @@ const Sidebar = ({ onNavigate = () => {} }) => {
         {!collapsed && <span>v1.0.0</span>}
         <Button 
           type="icon" 
-          title="Help"
+          title="Bantuan"
           onClick={() => console.log('Help clicked')}
         >
           ?

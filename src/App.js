@@ -5,6 +5,7 @@ import Sidebar from './components/common/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Timer from './pages/Timer';
 import Tasks from './pages/Tasks';
+import Settings from './pages/Settings';
 import { TaskProvider } from './contexts/TaskContext';
 
 // Temporary placeholder components
@@ -74,6 +75,8 @@ function App() {
         return <Tasks />;
       case 'timer':
         return <Timer />;
+      case 'settings':
+        return <Settings />;
       default:
         return <Dashboard />;
     }
@@ -98,7 +101,7 @@ function App() {
         <Header />
         
         <MainContainer>
-          <Sidebar onNavigate={handleNavigation} />
+          <Sidebar onNavigate={handleNavigation} currentPage={currentPage} />
           <ContentWrapper>
             {renderPage()}
           </ContentWrapper>
