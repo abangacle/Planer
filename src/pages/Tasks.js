@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { format } from 'date-fns';
 import Button from '../components/common/Button';
 import StorageService from '../services/storage';
 import TaskForm from '../components/planner/TaskForm';
 import TaskDetails from '../components/planner/TaskDetails';
+import TaskList from '../components/planner/TaskList';
 import { useTaskContext } from '../contexts/TaskContext';
 
 const TasksContainer = styled.div`
@@ -369,7 +370,7 @@ const StatusIcon = {
 };
 
 const TasksPage = () => {
-  // Menggunakan TaskContext untuk state management
+  // Extract reorderTasks from context
   const { 
     tasks, 
     loading, 
@@ -379,10 +380,10 @@ const TasksPage = () => {
     updateTask,
     deleteTask,
     markTaskAsCompleted,
-    markTaskAsInProgress
+    markTaskAsInProgress,
+    reorderTasks
   } = useTaskContext();
   
-  const [filteredTasks, setFilteredTasks] = useState([]);
   const [filter, setFilter] = useState({
     status: 'all',
     priority: 'all',
@@ -391,13 +392,13 @@ const TasksPage = () => {
   
   const [modalOpen, setModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
-  const [viewType, setViewType] = useState('grid'); // 'grid' or 'table'
+  const [viewType, setViewType] = useState('list'); // Changed default to 'list'
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   
   // Update filtered tasks when main tasks or filters change
-  useEffect(() => {
-    if (loading) return;
+  const filteredTasks = useMemo(() => {
+    if (loading) return [];
     
     // Apply filters
     let result = [...tasks];
@@ -425,7 +426,7 @@ const TasksPage = () => {
       );
     }
     
-    setFilteredTasks(result);
+    return result;
   }, [tasks, filter, loading]);
   
   const handleFilterChange = (e) => {
@@ -524,6 +525,21 @@ const TasksPage = () => {
       default: return 'Pending';
     }
   };
+  
+  const handleReorderTasks = (reorderedTasks) => {
+    // Call the context method to reorder tasks
+    reorderTasks(reorderedTasks);
+  };
+  
+  const renderTasksList = () => (
+    <TaskList 
+      tasks={filteredTasks}
+      onTaskUpdate={updateTask}
+      onTaskClick={handleViewTask}
+      onTaskDelete={handleDeleteTask}
+      onReorder={handleReorderTasks}
+    />
+  );
   
   const renderTasksGrid = () => (
     <TaskGrid>
@@ -722,6 +738,12 @@ const TasksPage = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <ViewTypeToggle>
           <ViewTypeButton 
+            active={viewType === 'list'} 
+            onClick={() => setViewType('list')}
+          >
+            📋 Daftar
+          </ViewTypeButton>
+          <ViewTypeButton 
             active={viewType === 'grid'} 
             onClick={() => setViewType('grid')}
           >
@@ -731,7 +753,7 @@ const TasksPage = () => {
             active={viewType === 'table'} 
             onClick={() => setViewType('table')}
           >
-            📋 Tabel
+            📊 Tabel
           </ViewTypeButton>
         </ViewTypeToggle>
         
@@ -772,7 +794,12 @@ const TasksPage = () => {
         />
       </FilterBar>
       
-      {viewType === 'grid' ? renderTasksGrid() : renderTasksTable()}
+      {viewType === 'grid' 
+        ? renderTasksGrid() 
+        : viewType === 'table' 
+          ? renderTasksTable() 
+          : renderTasksList()
+      }
       
       {modalOpen && (
         <ModalOverlay onClick={handleCloseModal}>

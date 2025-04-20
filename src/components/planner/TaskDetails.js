@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { format } from 'date-fns';
 import Button from '../common/Button';
@@ -225,8 +225,32 @@ const CommentInput = styled.textarea`
   }
 `;
 
+const TimerSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--background-secondary);
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+`;
+
+const TimerDisplay = styled.div`
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-family: monospace;
+`;
+
+const TimerControls = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
 const TaskDetails = ({ task, onEdit, onDelete, onClose }) => {
   const [subtasks, setSubtasks] = useState(task.subtasks || []);
+  const [timeSpent, setTimeSpent] = useState(task.timeSpent || 0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerInterval, setTimerInterval] = useState(null);
   
   const handleToggleSubtask = (subtaskId) => {
     // Update local state
@@ -271,6 +295,44 @@ const TaskDetails = ({ task, onEdit, onDelete, onClose }) => {
       default: return 'Pending';
     }
   };
+  
+  const handleStartTimer = () => {
+    if (isTimerRunning) return;
+    
+    const interval = setInterval(() => {
+      setTimeSpent(prev => prev + 1);
+    }, 60000); // Update every minute
+    
+    setTimerInterval(interval);
+    setIsTimerRunning(true);
+  };
+  
+  const handleStopTimer = () => {
+    if (!isTimerRunning) return;
+    
+    clearInterval(timerInterval);
+    setTimerInterval(null);
+    setIsTimerRunning(false);
+    
+    // Save updated time to task
+    const updatedTask = { ...task, timeSpent };
+    StorageService.saveTask(updatedTask);
+  };
+  
+  const formatTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+  
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [timerInterval]);
   
   return (
     <Container>
@@ -317,6 +379,31 @@ const TaskDetails = ({ task, onEdit, onDelete, onClose }) => {
         <Description>
           {task.description || 'Tidak ada deskripsi.'}
         </Description>
+      </Section>
+      
+      <Section>
+        <SectionTitle>Timer</SectionTitle>
+        <TimerSection>
+          <TimerDisplay>{formatTime(timeSpent)}</TimerDisplay>
+          <TimerControls>
+            <Button 
+              type="primary" 
+              size="small"
+              onClick={handleStartTimer}
+              disabled={isTimerRunning}
+            >
+              ▶️ Mulai
+            </Button>
+            <Button 
+              type="secondary" 
+              size="small"
+              onClick={handleStopTimer}
+              disabled={!isTimerRunning}
+            >
+              ⏹️ Berhenti
+            </Button>
+          </TimerControls>
+        </TimerSection>
       </Section>
       
       <Section>

@@ -91,6 +91,28 @@ const ErrorMessage = styled.div`
   margin-top: 0.5rem;
 `;
 
+const PrioritySelector = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+`;
+
+const PriorityOption = styled.div`
+  flex: 1;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: ${props => props.selected ? props.color : 'var(--background-secondary)'};
+  color: ${props => props.selected ? 'white' : 'var(--text-color)'};
+  font-weight: ${props => props.selected ? '500' : 'normal'};
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: ${props => props.selected ? props.color : 'var(--background-secondary-hover)'};
+  }
+`;
+
 const TaskForm = ({ task, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     id: '',
@@ -280,17 +302,30 @@ const TaskForm = ({ task, onSave, onCancel }) => {
         </FormGroup>
         
         <FormGroup>
-          <FormLabel htmlFor="priority">Prioritas</FormLabel>
-          <FormSelect
-            id="priority"
-            name="priority"
-            value={formData.priority}
-            onChange={handleChange}
-          >
-            <option value={3}>Tinggi</option>
-            <option value={2}>Sedang</option>
-            <option value={1}>Rendah</option>
-          </FormSelect>
+          <FormLabel>Prioritas</FormLabel>
+          <PrioritySelector>
+            <PriorityOption 
+              selected={formData.priority === 3}
+              color="var(--error-color)"
+              onClick={() => handleChange({ target: { name: 'priority', value: 3 } })}
+            >
+              🔴 Tinggi
+            </PriorityOption>
+            <PriorityOption 
+              selected={formData.priority === 2}
+              color="var(--warning-color)"
+              onClick={() => handleChange({ target: { name: 'priority', value: 2 } })}
+            >
+              🟠 Sedang
+            </PriorityOption>
+            <PriorityOption 
+              selected={formData.priority === 1}
+              color="var(--success-color)"
+              onClick={() => handleChange({ target: { name: 'priority', value: 1 } })}
+            >
+              🟢 Rendah
+            </PriorityOption>
+          </PrioritySelector>
         </FormGroup>
         
         <FormGroup>

@@ -1,5 +1,14 @@
 /**
  * Service untuk mengelola penyimpanan data
+ * 
+ * TODO: IndexedDB Implementation Plan
+ * 1. Create database and object stores for tasks, events, notes, etc.
+ * 2. Implement CRUD operations using IndexedDB API
+ * 3. Add migration logic from localStorage to IndexedDB
+ * 4. Implement transaction handling for data integrity
+ * 5. Add error handling and fallback mechanisms
+ * 6. Add data synchronization with potential future backend
+ * 
  * Pada fase awal, menggunakan localStorage
  * Pada fase selanjutnya akan ditingkatkan ke IndexedDB
  */
