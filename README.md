@@ -17,22 +17,34 @@ Planer adalah aplikasi manajemen tugas yang dikembangkan menggunakan React.js de
 - **Filter dan Pencarian**: Temukan tugas berdasarkan status, prioritas, atau kata kunci
 - **Statistik dan Progres**: Pantau kemajuan penyelesaian tugas dengan visualisasi
 
+### Analitik
+- **Grafik Aktivitas Mingguan**: Visualisasi tugas yang dibuat dan diselesaikan per hari
+- **Metrik Produktivitas**: Pengukuran kinerja seperti rasio penyelesaian dan waktu rata-rata
+- **Analisis Prioritas**: Pantau tugas prioritas tinggi yang tertunda
+- **Tren Mingguan**: Lihat pola penyelesaian tugas selama seminggu
+
 ### Penyimpanan
 - **Penyimpanan Lokal**: Data tersimpan di perangkat pengguna menggunakan localStorage
 - **Rencana IndexedDB**: Peningkatan mendatang untuk dukungan offline dan performa lebih baik
 
-## Pembaruan Terbaru (Mei 2024)
+## Pembaruan Terbaru (Juni 2024)
 
-### 1. Peningkatan Kinerja dan UI
+### 1. Dashboard Analitik
+- Menambahkan komponen TaskAnalytics dengan grafik mingguan
+- Mengimplementasikan metrik produktivitas terperinci
+- Antarmuka interaktif dengan hover tooltips untuk detail tambahan
+- Terjemahan lengkap ke Bahasa Indonesia
+
+### 2. Peningkatan Kinerja dan UI
 - Mengoptimalkan rendering dengan useMemo untuk filter tugas
 - Meningkatkan UI pemilihan prioritas dengan antarmuka visual yang lebih intuitif
 
-### 2. Fitur Baru
+### 3. Fitur Baru
 - Menambahkan tampilan daftar tugas dengan kemampuan drag-and-drop
 - Mengimplementasikan timer tugas untuk melacak waktu pengerjaan
 - Menambahkan rencana migrasi ke IndexedDB untuk penyimpanan data yang lebih baik
 
-### 3. Peningkatan Struktur Kode
+### 4. Peningkatan Struktur Kode
 - Refaktor pengelolaan state dengan pola konteks dan reducer
 - Pemisahan komponen untuk meningkatkan maintainability
 
@@ -58,7 +70,7 @@ npm start
 
 - React.js
 - Styled Components
-- date-fns
+- date-fns dengan lokalisasi Bahasa Indonesia
 - Context API
 - localStorage
 
