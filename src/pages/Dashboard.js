@@ -4,6 +4,8 @@ import { format } from 'date-fns';
 import id from 'date-fns/locale/id';
 import Button from '../components/common/Button';
 import StorageService from '../services/storage';
+import TaskAnalytics from '../components/dashboard/TaskAnalytics';
+import { useTaskContext } from '../contexts/TaskContext';
 
 const DashboardContainer = styled.div`
   padding: 1.5rem;
@@ -205,7 +207,7 @@ const EmptyState = styled.div`
 `;
 
 const Dashboard = () => {
-  const [tasks, setTasks] = useState([]);
+  const { tasks, stats: taskStats } = useTaskContext();
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState({
     totalTasks: 0,
@@ -215,22 +217,18 @@ const Dashboard = () => {
   });
   
   useEffect(() => {
-    // Fetch tasks
-    const loadedTasks = StorageService.getTasks();
-    setTasks(loadedTasks);
-    
     // Fetch events
     const loadedEvents = StorageService.getEvents();
     setEvents(loadedEvents);
     
     // Calculate stats
     setStats({
-      totalTasks: loadedTasks.length,
-      completedTasks: loadedTasks.filter(task => task.status === 'completed').length,
+      totalTasks: tasks.length,
+      completedTasks: tasks.filter(task => task.status === 'completed').length,
       upcomingEvents: loadedEvents.length,
       activeProjects: StorageService.getProjects().filter(p => p.status === 'active').length
     });
-  }, []);
+  }, [tasks]);
   
   // Filter tasks for today
   const todayTasks = tasks.filter(task => {
@@ -268,47 +266,49 @@ const Dashboard = () => {
       <SummarySection>
         <SummaryCard>
           <CardHeader>
-            <CardTitle>Total Tasks</CardTitle>
+            <CardTitle>Total Tugas</CardTitle>
             <CardIcon>✓</CardIcon>
           </CardHeader>
           <CardValue>{stats.totalTasks}</CardValue>
-          <CardSubtext>{stats.completedTasks} tasks completed</CardSubtext>
+          <CardSubtext>{stats.completedTasks} tugas selesai</CardSubtext>
         </SummaryCard>
         
         <SummaryCard>
           <CardHeader>
-            <CardTitle>Today's Tasks</CardTitle>
+            <CardTitle>Tugas Hari Ini</CardTitle>
             <CardIcon>📅</CardIcon>
           </CardHeader>
           <CardValue>{todayTasks.length}</CardValue>
-          <CardSubtext>Due today</CardSubtext>
+          <CardSubtext>Jatuh tempo hari ini</CardSubtext>
         </SummaryCard>
         
         <SummaryCard>
           <CardHeader>
-            <CardTitle>Upcoming Events</CardTitle>
+            <CardTitle>Acara Mendatang</CardTitle>
             <CardIcon>🗓️</CardIcon>
           </CardHeader>
           <CardValue>{stats.upcomingEvents}</CardValue>
-          <CardSubtext>Scheduled events</CardSubtext>
+          <CardSubtext>Acara terjadwal</CardSubtext>
         </SummaryCard>
         
         <SummaryCard>
           <CardHeader>
-            <CardTitle>Active Projects</CardTitle>
+            <CardTitle>Proyek Aktif</CardTitle>
             <CardIcon>🎯</CardIcon>
           </CardHeader>
           <CardValue>{stats.activeProjects}</CardValue>
-          <CardSubtext>In progress</CardSubtext>
+          <CardSubtext>Sedang berlangsung</CardSubtext>
         </SummaryCard>
       </SummarySection>
+      
+      <TaskAnalytics />
       
       <ContentSection>
         <TasksSection>
           <SectionHeader>
-            <h2>Today's Tasks</h2>
+            <h2>Tugas Hari Ini</h2>
             <Button type="secondary" size="small">
-              Add Task
+              Tambah Tugas
             </Button>
           </SectionHeader>
           
@@ -321,16 +321,16 @@ const Dashboard = () => {
                     <TaskTag>{task.category}</TaskTag>
                   </TaskTitle>
                   <TaskMeta>
-                    <span>Due: {format(new Date(task.dueDate), 'HH:mm')}</span>
-                    {task.project && <span>Project: {task.project}</span>}
+                    <span>Tenggat: {format(new Date(task.dueDate), 'HH:mm')}</span>
+                    {task.project && <span>Proyek: {task.project}</span>}
                   </TaskMeta>
                 </TaskItem>
               ))
             ) : (
               <EmptyState>
-                <p>No tasks scheduled for today.</p>
+                <p>Tidak ada tugas terjadwal untuk hari ini.</p>
                 <Button type="primary" style={{ marginTop: '1rem' }}>
-                  Add Your First Task
+                  Tambah Tugas Pertama
                 </Button>
               </EmptyState>
             )}
@@ -339,7 +339,7 @@ const Dashboard = () => {
         
         <UpcomingSection>
           <SectionHeader>
-            <h2>Upcoming Events</h2>
+            <h2>Acara Mendatang</h2>
           </SectionHeader>
           
           <EventList>
@@ -359,9 +359,9 @@ const Dashboard = () => {
               ))
             ) : (
               <EmptyState>
-                <p>No upcoming events.</p>
+                <p>Tidak ada acara mendatang.</p>
                 <Button type="primary" style={{ marginTop: '1rem' }}>
-                  Schedule Event
+                  Jadwalkan Acara
                 </Button>
               </EmptyState>
             )}
