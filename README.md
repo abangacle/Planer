@@ -1,14 +1,30 @@
 # Planer App
 
+[![GitHub issues](https://img.shields.io/github/issues/abangacle/Planer)](https://github.com/abangacle/Planer/issues)
+[![GitHub stars](https://img.shields.io/github/stars/abangacle/Planer)](https://github.com/abangacle/Planer/stargazers)
+[![GitHub license](https://img.shields.io/github/license/abangacle/Planer)](https://github.com/abangacle/Planer/blob/master/LICENSE)
+
 Planer adalah aplikasi desktop yang dirancang untuk meningkatkan produktivitas dan manajemen tugas bagi para profesional. Aplikasi ini menyediakan fitur-fitur untuk mengelola tugas, jadwal, proyek, dan sesi fokus dalam satu tempat yang intuitif.
 
 ## Fitur Utama
 
 - **Dashboard Profesional** - Ringkasan jadwal dan tugas dengan tampilan visual yang menarik
+- **Task Management** - Sistem manajemen tugas dengan prioritas, kategori, dan pengelompokan berdasarkan proyek
 - **Work Planner** - Manajemen tugas dan jadwal dengan tampilan kalender interaktif
 - **Timer dan Fokus** - Pomodoro timer dan tracking untuk sesi fokus dan deep work
 - **Manajemen Proyek** - Organisasi tugas berdasarkan proyek dan pelacakan progres
 - **Multi-tema** - Pilihan tema visual yang dapat disesuaikan
+
+## Implementasi Task Management
+
+Planer mengimplementasikan sistem manajemen tugas dengan fitur-fitur berikut:
+
+- Pengelolaan tugas berdasarkan prioritas (tinggi, sedang, rendah) dengan indikator visual
+- Kategorisasi tugas (kerja, proyek, pribadi, dll)
+- Penjadwalan dengan tenggat waktu (due date)
+- Integrasi dengan proyek untuk pengelolaan tugas yang terstruktur
+- Penyimpanan data lokal menggunakan localStorage (akan ditingkatkan ke IndexedDB)
+- Tampilan task yang intuitif dengan informasi yang relevan (waktu tenggat, proyek, dll)
 
 ## Teknologi
 

@@ -4,6 +4,7 @@ import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Timer from './pages/Timer';
+import Tasks from './pages/Tasks';
 
 // Temporary placeholder components
 const PlaceholderHeader = styled.header`
@@ -68,6 +69,8 @@ function App() {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
+      case 'tasks':
+        return <Tasks />;
       case 'timer':
         return <Timer />;
       default:
