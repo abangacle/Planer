@@ -4,6 +4,8 @@ import { format } from 'date-fns';
 import Button from '../components/common/Button';
 import StorageService from '../services/storage';
 import TaskForm from '../components/planner/TaskForm';
+import TaskDetails from '../components/planner/TaskDetails';
+import { useTaskContext } from '../contexts/TaskContext';
 
 const TasksContainer = styled.div`
   padding: 1.5rem;
@@ -167,6 +169,8 @@ const TaskCard = styled.div`
     transform: translateY(-2px);
     transition: all 0.2s ease;
   }
+
+  cursor: pointer;
 `;
 
 const TaskHeader = styled.div`
@@ -242,24 +246,143 @@ const ModalContent = styled.div`
   background-color: white;
   border-radius: 8px;
   width: 90%;
-  max-width: 700px;
+  max-width: ${props => props.wide ? '900px' : '700px'};
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 `;
 
+const ViewTypeToggle = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  background-color: var(--background-secondary);
+  border-radius: 6px;
+  padding: 0.25rem;
+  width: fit-content;
+`;
+
+const ViewTypeButton = styled.button`
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: ${props => props.active ? 'white' : 'transparent'};
+  color: ${props => props.active ? 'var(--primary-color)' : 'var(--text-secondary)'};
+  border-radius: 4px;
+  font-weight: ${props => props.active ? '500' : 'normal'};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: ${props => props.active ? '0 2px 4px rgba(0, 0, 0, 0.05)' : 'none'};
+  
+  &:hover {
+    color: var(--primary-color);
+  }
+`;
+
+const TaskTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+`;
+
+const TableHeader = styled.th`
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+`;
+
+const TableRow = styled.tr`
+  &:hover {
+    background-color: var(--background-secondary);
+  }
+  cursor: pointer;
+`;
+
+const TableCell = styled.td`
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 0.9rem;
+`;
+
+const PriorityCell = styled(TableCell)`
+  width: 80px;
+`;
+
+const StatusCell = styled(TableCell)`
+  width: 150px;
+`;
+
+const ActionsCell = styled(TableCell)`
+  width: 120px;
+  text-align: right;
+`;
+
+const Pill = styled.span`
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background-color: ${props => {
+    if (props.type === 'status') {
+      switch(props.value) {
+        case 'completed': return 'var(--success-light)';
+        case 'in-progress': return 'var(--primary-light)';
+        case 'canceled': return 'var(--error-light)';
+        default: return 'var(--warning-light)';
+      }
+    } else if (props.type === 'priority') {
+      switch(props.value) {
+        case 'high': return 'var(--error-light)';
+        case 'medium': return 'var(--warning-light)';
+        default: return 'var(--success-light)';
+      }
+    }
+  }};
+  color: ${props => {
+    if (props.type === 'status') {
+      switch(props.value) {
+        case 'completed': return 'var(--success-color)';
+        case 'in-progress': return 'var(--primary-color)';
+        case 'canceled': return 'var(--error-color)';
+        default: return 'var(--warning-color)';
+      }
+    } else if (props.type === 'priority') {
+      switch(props.value) {
+        case 'high': return 'var(--error-color)';
+        case 'medium': return 'var(--warning-color)';
+        default: return 'var(--success-color)';
+      }
+    }
+  }};
+  white-space: nowrap;
+`;
+
+const StatusIcon = {
+  completed: '✓',
+  'in-progress': '⟳',
+  canceled: '✕',
+  pending: '⏱️'
+};
+
 const TasksPage = () => {
-  const [tasks, setTasks] = useState([]);
+  // Menggunakan TaskContext untuk state management
+  const { 
+    tasks, 
+    loading, 
+    stats, 
+    error,
+    addTask,
+    updateTask,
+    deleteTask,
+    markTaskAsCompleted,
+    markTaskAsInProgress
+  } = useTaskContext();
+  
   const [filteredTasks, setFilteredTasks] = useState([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    completed: 0,
-    pending: 0,
-    highPriority: 0,
-    mediumPriority: 0,
-    lowPriority: 0,
-    completionRate: 0
-  });
   const [filter, setFilter] = useState({
     status: 'all',
     priority: 'all',
@@ -268,39 +391,14 @@ const TasksPage = () => {
   
   const [modalOpen, setModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
+  const [viewType, setViewType] = useState('grid'); // 'grid' or 'table'
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
   
+  // Update filtered tasks when main tasks or filters change
   useEffect(() => {
-    // Fetch tasks
-    const loadedTasks = StorageService.getTasks();
-    setTasks(loadedTasks);
-    setFilteredTasks(loadedTasks);
+    if (loading) return;
     
-    // Calculate statistics
-    calculateStats(loadedTasks);
-  }, []);
-  
-  const calculateStats = (taskList) => {
-    const total = taskList.length;
-    const completed = taskList.filter(task => task.status === 'completed').length;
-    const pending = taskList.filter(task => task.status === 'pending').length;
-    const highPriority = taskList.filter(task => task.priority === 3).length;
-    const mediumPriority = taskList.filter(task => task.priority === 2).length;
-    const lowPriority = taskList.filter(task => task.priority === 1).length;
-    
-    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
-    setStats({
-      total,
-      completed,
-      pending,
-      highPriority,
-      mediumPriority,
-      lowPriority,
-      completionRate
-    });
-  };
-  
-  useEffect(() => {
     // Apply filters
     let result = [...tasks];
     
@@ -328,7 +426,7 @@ const TasksPage = () => {
     }
     
     setFilteredTasks(result);
-  }, [tasks, filter]);
+  }, [tasks, filter, loading]);
   
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -343,53 +441,220 @@ const TasksPage = () => {
     setModalOpen(true);
   };
   
-  const handleEditTask = (taskId) => {
+  const handleEditTask = (taskId, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
     const taskToEdit = tasks.find(task => task.id === taskId);
     if (taskToEdit) {
       setCurrentTask(taskToEdit);
       setModalOpen(true);
+      
+      // Close details if open
+      if (detailsOpen) {
+        setDetailsOpen(false);
+      }
     }
   };
   
-  const handleDeleteTask = (taskId) => {
-    if (window.confirm('Yakin ingin menghapus tugas ini?')) {
-      StorageService.deleteTask(taskId);
-      
-      // Update tasks list
-      const updatedTasks = tasks.filter(task => task.id !== taskId);
-      setTasks(updatedTasks);
-      
-      // Recalculate stats
-      calculateStats(updatedTasks);
+  const handleDeleteTask = (taskId, e) => {
+    if (e) {
+      e.stopPropagation();
     }
+    
+    if (window.confirm('Yakin ingin menghapus tugas ini?')) {
+      deleteTask(taskId);
+      
+      // Close details if this task was being viewed
+      if (selectedTask && selectedTask.id === taskId) {
+        setDetailsOpen(false);
+      }
+    }
+  };
+  
+  const handleViewTask = (task) => {
+    setSelectedTask(task);
+    setDetailsOpen(true);
   };
   
   const handleSaveTask = (taskData) => {
-    // Update local tasks state
-    const updatedTasks = [...tasks];
-    const existingIndex = updatedTasks.findIndex(t => t.id === taskData.id);
-    
-    if (existingIndex >= 0) {
+    if (taskData.id) {
       // Update existing task
-      updatedTasks[existingIndex] = taskData;
+      updateTask(taskData);
     } else {
       // Add new task
-      updatedTasks.push(taskData);
+      addTask(taskData);
     }
-    
-    setTasks(updatedTasks);
-    
-    // Recalculate stats
-    calculateStats(updatedTasks);
     
     // Close modal
     setModalOpen(false);
+    
+    // Update selected task if it was changed
+    if (selectedTask && selectedTask.id === taskData.id) {
+      setSelectedTask(taskData);
+    }
   };
   
   const handleCloseModal = () => {
     setModalOpen(false);
     setCurrentTask(null);
   };
+  
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+  };
+  
+  const handleQuickStatusChange = (taskId, newStatus, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      updateTask({...task, status: newStatus});
+    }
+  };
+  
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'completed': return 'Selesai';
+      case 'in-progress': return 'Sedang Dikerjakan';
+      case 'canceled': return 'Dibatalkan';
+      default: return 'Pending';
+    }
+  };
+  
+  const renderTasksGrid = () => (
+    <TaskGrid>
+      {filteredTasks.length > 0 ? (
+        filteredTasks.map(task => (
+          <TaskCard 
+            key={task.id} 
+            priority={task.priority === 3 ? 'high' : task.priority === 2 ? 'medium' : 'low'}
+            onClick={() => handleViewTask(task)}
+          >
+            <TaskHeader>
+              <TaskTitle>{task.title}</TaskTitle>
+              <TaskCategory>{task.category}</TaskCategory>
+            </TaskHeader>
+            
+            {task.description && (
+              <TaskDescription>{task.description}</TaskDescription>
+            )}
+            
+            <TaskMeta>
+              <div>
+                {task.dueDate && (
+                  <div>Due: {format(new Date(task.dueDate), 'dd MMM yyyy HH:mm')}</div>
+                )}
+                {task.project && <div>Project: {task.project}</div>}
+              </div>
+              <div>
+                {task.priority === 3 ? '🔴 High' : 
+                 task.priority === 2 ? '🟠 Medium' : 
+                 '🟢 Low'}
+              </div>
+            </TaskMeta>
+            
+            <TaskActions onClick={e => e.stopPropagation()}>
+              <Button 
+                type="secondary" 
+                size="small"
+                onClick={(e) => handleEditTask(task.id, e)}
+              >
+                Edit
+              </Button>
+              <Button 
+                type="danger" 
+                size="small"
+                onClick={(e) => handleDeleteTask(task.id, e)}
+              >
+                Hapus
+              </Button>
+            </TaskActions>
+          </TaskCard>
+        ))
+      ) : (
+        <EmptyState>
+          <p>Tidak ada tugas yang ditemukan.</p>
+          <Button type="primary" style={{ marginTop: '1rem' }} onClick={handleCreateTask}>
+            Tambah Tugas Pertama
+          </Button>
+        </EmptyState>
+      )}
+    </TaskGrid>
+  );
+  
+  const renderTasksTable = () => (
+    <TaskTable>
+      <thead>
+        <tr>
+          <TableHeader style={{ width: '40%' }}>Judul</TableHeader>
+          <TableHeader>Status</TableHeader>
+          <TableHeader>Prioritas</TableHeader>
+          <TableHeader>Tenggat</TableHeader>
+          <TableHeader>Kategori</TableHeader>
+          <TableHeader>Aksi</TableHeader>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredTasks.length > 0 ? (
+          filteredTasks.map(task => (
+            <TableRow key={task.id} onClick={() => handleViewTask(task)}>
+              <TableCell>{task.title}</TableCell>
+              <StatusCell>
+                <Pill type="status" value={task.status}>
+                  {StatusIcon[task.status]} {getStatusText(task.status)}
+                </Pill>
+              </StatusCell>
+              <PriorityCell>
+                <Pill 
+                  type="priority" 
+                  value={task.priority === 3 ? 'high' : task.priority === 2 ? 'medium' : 'low'}
+                >
+                  {task.priority === 3 ? '🔴 Tinggi' : 
+                   task.priority === 2 ? '🟠 Sedang' : 
+                   '🟢 Rendah'}
+                </Pill>
+              </PriorityCell>
+              <TableCell>
+                {task.dueDate ? format(new Date(task.dueDate), 'dd MMM yyyy') : '-'}
+              </TableCell>
+              <TableCell>{task.category}</TableCell>
+              <ActionsCell onClick={e => e.stopPropagation()}>
+                <Button 
+                  type="icon" 
+                  size="small"
+                  onClick={(e) => handleEditTask(task.id, e)}
+                  title="Edit"
+                >
+                  ✏️
+                </Button>
+                <Button 
+                  type="icon" 
+                  size="small"
+                  onClick={(e) => handleDeleteTask(task.id, e)}
+                  title="Hapus"
+                >
+                  🗑️
+                </Button>
+              </ActionsCell>
+            </TableRow>
+          ))
+        ) : (
+          <tr>
+            <TableCell colSpan={6} style={{ textAlign: 'center', padding: '2rem 0' }}>
+              <p>Tidak ada tugas yang ditemukan.</p>
+              <Button type="primary" style={{ marginTop: '1rem' }} onClick={handleCreateTask}>
+                Tambah Tugas Pertama
+              </Button>
+            </TableCell>
+          </tr>
+        )}
+      </tbody>
+    </TaskTable>
+  );
   
   return (
     <TasksContainer>
@@ -454,6 +719,27 @@ const TasksPage = () => {
         </PriorityDistribution>
       </ProgressSection>
       
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <ViewTypeToggle>
+          <ViewTypeButton 
+            active={viewType === 'grid'} 
+            onClick={() => setViewType('grid')}
+          >
+            🔲 Grid
+          </ViewTypeButton>
+          <ViewTypeButton 
+            active={viewType === 'table'} 
+            onClick={() => setViewType('table')}
+          >
+            📋 Tabel
+          </ViewTypeButton>
+        </ViewTypeToggle>
+        
+        <Button type="primary" onClick={handleCreateTask}>
+          ➕ Tambah Tugas
+        </Button>
+      </div>
+      
       <FilterBar>
         <FilterSelect 
           name="status" 
@@ -484,69 +770,9 @@ const TasksPage = () => {
           onChange={handleFilterChange}
           placeholder="Cari tugas..."
         />
-        
-        <Button type="primary" onClick={handleCreateTask}>
-          Tambah Tugas
-        </Button>
       </FilterBar>
       
-      <TaskGrid>
-        {filteredTasks.length > 0 ? (
-          filteredTasks.map(task => (
-            <TaskCard 
-              key={task.id} 
-              priority={task.priority === 3 ? 'high' : task.priority === 2 ? 'medium' : 'low'}
-            >
-              <TaskHeader>
-                <TaskTitle>{task.title}</TaskTitle>
-                <TaskCategory>{task.category}</TaskCategory>
-              </TaskHeader>
-              
-              {task.description && (
-                <TaskDescription>{task.description}</TaskDescription>
-              )}
-              
-              <TaskMeta>
-                <div>
-                  {task.dueDate && (
-                    <div>Due: {format(new Date(task.dueDate), 'dd MMM yyyy HH:mm')}</div>
-                  )}
-                  {task.project && <div>Project: {task.project}</div>}
-                </div>
-                <div>
-                  {task.priority === 3 ? '🔴 High' : 
-                   task.priority === 2 ? '🟠 Medium' : 
-                   '🟢 Low'}
-                </div>
-              </TaskMeta>
-              
-              <TaskActions>
-                <Button 
-                  type="secondary" 
-                  size="small"
-                  onClick={() => handleEditTask(task.id)}
-                >
-                  Edit
-                </Button>
-                <Button 
-                  type="danger" 
-                  size="small"
-                  onClick={() => handleDeleteTask(task.id)}
-                >
-                  Hapus
-                </Button>
-              </TaskActions>
-            </TaskCard>
-          ))
-        ) : (
-          <EmptyState>
-            <p>Tidak ada tugas yang ditemukan.</p>
-            <Button type="primary" style={{ marginTop: '1rem' }} onClick={handleCreateTask}>
-              Tambah Tugas Pertama
-            </Button>
-          </EmptyState>
-        )}
-      </TaskGrid>
+      {viewType === 'grid' ? renderTasksGrid() : renderTasksTable()}
       
       {modalOpen && (
         <ModalOverlay onClick={handleCloseModal}>
@@ -555,6 +781,19 @@ const TasksPage = () => {
               task={currentTask} 
               onSave={handleSaveTask} 
               onCancel={handleCloseModal} 
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+      
+      {detailsOpen && selectedTask && (
+        <ModalOverlay onClick={handleCloseDetails}>
+          <ModalContent wide onClick={e => e.stopPropagation()}>
+            <TaskDetails 
+              task={selectedTask}
+              onEdit={() => handleEditTask(selectedTask.id)}
+              onDelete={() => handleDeleteTask(selectedTask.id)}
+              onClose={handleCloseDetails}
             />
           </ModalContent>
         </ModalOverlay>

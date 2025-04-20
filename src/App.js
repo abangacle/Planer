@@ -5,6 +5,7 @@ import Sidebar from './components/common/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Timer from './pages/Timer';
 import Tasks from './pages/Tasks';
+import { TaskProvider } from './contexts/TaskContext';
 
 // Temporary placeholder components
 const PlaceholderHeader = styled.header`
@@ -92,16 +93,18 @@ function App() {
   }
 
   return (
-    <AppContainer className="app">
-      <Header />
-      
-      <MainContainer>
-        <Sidebar onNavigate={handleNavigation} />
-        <ContentWrapper>
-          {renderPage()}
-        </ContentWrapper>
-      </MainContainer>
-    </AppContainer>
+    <TaskProvider>
+      <AppContainer className="app">
+        <Header />
+        
+        <MainContainer>
+          <Sidebar onNavigate={handleNavigation} />
+          <ContentWrapper>
+            {renderPage()}
+          </ContentWrapper>
+        </MainContainer>
+      </AppContainer>
+    </TaskProvider>
   );
 }
 
