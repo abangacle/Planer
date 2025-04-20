@@ -1,66 +1,74 @@
-# Planer App
+# Planer - Aplikasi Manajemen Tugas
 
 [![GitHub issues](https://img.shields.io/github/issues/abangacle/Planer)](https://github.com/abangacle/Planer/issues)
 [![GitHub stars](https://img.shields.io/github/stars/abangacle/Planer)](https://github.com/abangacle/Planer/stargazers)
 [![GitHub license](https://img.shields.io/github/license/abangacle/Planer)](https://github.com/abangacle/Planer/blob/master/LICENSE)
 
-Planer adalah aplikasi desktop yang dirancang untuk meningkatkan produktivitas dan manajemen tugas bagi para profesional. Aplikasi ini menyediakan fitur-fitur untuk mengelola tugas, jadwal, proyek, dan sesi fokus dalam satu tempat yang intuitif.
+Planer adalah aplikasi manajemen tugas yang dikembangkan menggunakan React.js dengan fitur-fitur komprehensif untuk membantu pengguna mengelola tugas dan meningkatkan produktivitas.
 
 ## Fitur Utama
 
-- **Dashboard Profesional** - Ringkasan jadwal dan tugas dengan tampilan visual yang menarik
-- **Task Management** - Sistem manajemen tugas dengan prioritas, kategori, dan pengelompokan berdasarkan proyek
-- **Work Planner** - Manajemen tugas dan jadwal dengan tampilan kalender interaktif
-- **Timer dan Fokus** - Pomodoro timer dan tracking untuk sesi fokus dan deep work
-- **Manajemen Proyek** - Organisasi tugas berdasarkan proyek dan pelacakan progres
-- **Multi-tema** - Pilihan tema visual yang dapat disesuaikan
+### Manajemen Tugas
+- **Tampilan Multi-view**: Lihat tugas dalam format daftar, grid, atau tabel
+- **Pengelompokan Prioritas**: Tandai tugas dengan prioritas tinggi, sedang, atau rendah
+- **Subtasks**: Buat checklist subtask di dalam tugas utama
+- **Timer Terintegasi**: Lacak waktu yang dihabiskan untuk menyelesaikan tugas
+- **Drag-and-Drop**: Susun ulang tugas dengan mudah menggunakan fitur tarik dan lepas
+- **Filter dan Pencarian**: Temukan tugas berdasarkan status, prioritas, atau kata kunci
+- **Statistik dan Progres**: Pantau kemajuan penyelesaian tugas dengan visualisasi
 
-## Implementasi Task Management
+### Penyimpanan
+- **Penyimpanan Lokal**: Data tersimpan di perangkat pengguna menggunakan localStorage
+- **Rencana IndexedDB**: Peningkatan mendatang untuk dukungan offline dan performa lebih baik
 
-Planer mengimplementasikan sistem manajemen tugas dengan fitur-fitur berikut:
+## Pembaruan Terbaru (Mei 2024)
 
-- Pengelolaan tugas berdasarkan prioritas (tinggi, sedang, rendah) dengan indikator visual
-- Kategorisasi tugas (kerja, proyek, pribadi, dll)
-- Penjadwalan dengan tenggat waktu (due date)
-- Integrasi dengan proyek untuk pengelolaan tugas yang terstruktur
-- Penyimpanan data lokal menggunakan localStorage (akan ditingkatkan ke IndexedDB)
-- Tampilan task yang intuitif dengan informasi yang relevan (waktu tenggat, proyek, dll)
+### 1. Peningkatan Kinerja dan UI
+- Mengoptimalkan rendering dengan useMemo untuk filter tugas
+- Meningkatkan UI pemilihan prioritas dengan antarmuka visual yang lebih intuitif
 
-## Teknologi
+### 2. Fitur Baru
+- Menambahkan tampilan daftar tugas dengan kemampuan drag-and-drop
+- Mengimplementasikan timer tugas untuk melacak waktu pengerjaan
+- Menambahkan rencana migrasi ke IndexedDB untuk penyimpanan data yang lebih baik
 
-- **Frontend**: React.js
-- **Desktop Wrapper**: Electron.js
-- **State Management**: Context API + useReducer
-- **Styling**: Styled Components
-- **Date Management**: date-fns
-- **Build & Packaging**: electron-builder
+### 3. Peningkatan Struktur Kode
+- Refaktor pengelolaan state dengan pola konteks dan reducer
+- Pemisahan komponen untuk meningkatkan maintainability
 
-## Instalasi dan Penggunaan
+## Cara Menjalankan Proyek
 
-### Prasyarat
+1. Kloning repositori
+```
+git clone https://github.com/ihyaabrar/Planer.git
+```
 
-- Node.js v14.x atau lebih tinggi
-- npm v6.x atau lebih tinggi
-
-### Instalasi Dependensi
-
-```bash
+2. Instal dependensi
+```
+cd Planer
 npm install
 ```
 
-### Menjalankan dalam Mode Development
-
-```bash
-npm run electron-dev
+3. Jalankan aplikasi
+```
+npm start
 ```
 
-### Build untuk Produksi
+## Teknologi Yang Digunakan
 
-```bash
-npm run electron-pack
-```
+- React.js
+- Styled Components
+- date-fns
+- Context API
+- localStorage
 
-Ini akan menghasilkan installer aplikasi untuk sistem operasi Anda di folder `/dist`.
+## Rencana Pengembangan Mendatang
+
+- Migrasi ke IndexedDB untuk penyimpanan lokal yang lebih baik
+- Sinkronisasi data dengan backend cloud
+- Mode offline
+- Tema gelap/terang
+- Integrasi dengan layanan kalender
 
 ## Struktur Proyek
 
